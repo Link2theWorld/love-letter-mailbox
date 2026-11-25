@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<!-- GitHub 分享卡片源文件：1280×640。渲染：Chrome --headless --screenshot --window-size=1280,640 -->
+<style>
+  * { margin: 0; box-sizing: border-box; }
+  html, body { width: 1280px; height: 640px; overflow: hidden; }
+  body {
+    background:
+      radial-gradient(ellipse 70% 90% at 85% 50%, rgba(155, 61, 46, .10), transparent 60%),
+      radial-gradient(ellipse 60% 80% at 10% 0%, rgba(255, 255, 255, .7), transparent 60%),
+      #efe6d6;
+    font-family: "Songti SC", "STSong", "Noto Serif SC", Georgia, serif;
+    color: #3b3329;
+    position: relative;
+  }
+  /* 细纸纹 */
+  body::before {
+    content: ""; position: absolute; inset: 0;
+    background-image: repeating-linear-gradient(0deg, rgba(120, 95, 60, .035) 0 1px, transparent 1px 34px);
+  }
+  .left { position: absolute; left: 88px; top: 92px; width: 640px; }
+  .kicker {
+    font: 600 20px/1 "SF Mono", Menlo, monospace; letter-spacing: .18em; color: #9b3d2e;
+    text-transform: uppercase; margin-bottom: 30px;
+  }
+  h1 { font-size: 104px; font-weight: 700; letter-spacing: .06em; line-height: 1; }
+  .en { font: italic 400 40px/1 Georgia, serif; color: #6d5f4c; margin-top: 22px; letter-spacing: .01em; }
+  .tagline { font-size: 30px; line-height: 1.6; margin-top: 40px; color: #4a4034; }
+  .tags { position: absolute; left: 88px; bottom: 100px; display: flex; gap: 12px; }
+  .tag {
+    font: 500 19px/1 -apple-system, "PingFang SC", sans-serif; color: #5a4d3c;
+    border: 1.5px solid #cdbfa6; border-radius: 999px; padding: 10px 18px; background: rgba(255, 253, 248, .6);
+  }
+
+  /* 信封 */
+  .envelope {
+    position: absolute; right: 96px; top: 140px; width: 400px; height: 268px;
+    background: #fffaf0; border-radius: 6px;
+    box-shadow: 0 30px 60px -20px rgba(80, 55, 25, .35), 0 2px 0 rgba(255, 255, 255, .8) inset;
+    transform: rotate(-5deg);
+  }
+  .letter {
+    position: absolute; left: 26px; right: 26px; top: -92px; height: 220px;
+    background: #fffdf8; border: 1px solid #e7dcc8; border-radius: 4px; padding: 26px 28px;
+    font-size: 21px; line-height: 1.9; color: #4a4034;
+    background-image: repeating-linear-gradient(0deg, transparent 0 39px, #eee3cf 39px 40px);
+    background-position: 0 22px;
+  }
+  .letter .sign { text-align: right; margin-top: 4px; }
+  .pocket {
+    position: absolute; inset: 0; border-radius: 6px; overflow: hidden;
+    background: linear-gradient(#f6ecda, #f3e6cf);
+    clip-path: polygon(0 32%, 50% 66%, 100% 32%, 100% 100%, 0 100%);
+  }
+  .pocket::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(to top right, transparent 49.6%, rgba(140, 110, 70, .12) 50%, transparent 50.4%),
+                linear-gradient(to top left, transparent 49.6%, rgba(140, 110, 70, .12) 50%, transparent 50.4%);
+  }
+  .seal {
+    position: absolute; left: 50%; top: 66%; width: 92px; height: 92px; margin: -46px 0 0 -46px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #c4553f, #9b3d2e 55%, #7a2c20);
+    box-shadow: 0 6px 14px rgba(110, 35, 20, .35), inset 0 -4px 8px rgba(0, 0, 0, .2);
+    display: grid; place-items: center;
+    color: #f6dcd2; font-size: 40px; font-weight: 700;
+  }
+  .seal::before {
+    content: ""; position: absolute; inset: 9px; border-radius: 50%; border: 2px solid rgba(246, 220, 210, .45);
+  }
+  .stamp {
+    position: absolute; right: 22px; bottom: 20px; width: 64px; height: 76px;
+    border: 3px dotted #c8b48f; border-radius: 3px; background: #f4ead6;
+    display: grid; place-items: center; font: 600 13px/1.2 "SF Mono", Menlo, monospace; color: #9b3d2e; text-align: center;
+    transform: rotate(4deg); z-index: 2;
+  }
+  .repo {
+    position: absolute; left: 90px; bottom: 54px;
+    font: 500 18px/1 "SF Mono", Menlo, monospace; color: #9a8b74;
+  }
+</style>
+</head>
+<body>
+  <div class="left">
+    <div class="kicker">AI Companion · Cloudflare Workers</div>
+    <h1>情书信箱</h1>
+    <div class="en">Love Letter Mailbox</div>
+    <div class="tagline">让酒馆角色在想你的时候<br>给你的邮箱寄一封真正的信</div>
+  </div>
+  <div class="tags">
+    <span class="tag">SillyTavern 角色卡</span>
+    <span class="tag">Cloudflare Email · 免费</span>
+    <span class="tag">回信 · 记忆</span>
+  </div>
+
+  <div class="envelope">
+    <div class="letter">见字如面。<br>今天杭州降温了，<br>第一个想到的是你。
+      <div class="sign">—— 晚</div>
+    </div>
+    <div class="pocket"></div>
+    <div class="stamp">LOVE<br>LETTER</div>
+    <div class="seal">缄</div>
+  </div>
+  <div class="repo">github.com/Link2theWorld/love-letter-mailbox</div>
+</body>
+</html>

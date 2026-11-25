@@ -1,17 +1,59 @@
-# 情书信箱 · love-letter-mailbox
+<div align="center">
 
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
+<img src=".github/assets/social-card.png" alt="情书信箱 Love Letter Mailbox：让 SillyTavern 酒馆角色通过 Cloudflare Workers 给你的邮箱寄情书" width="100%">
 
-> **English:** A Cloudflare Worker that lets an AI companion (any SillyTavern character card) write you love letters by email — on a daily schedule, at random times, or whenever the character decides to. Reply to the email and the character reads it, remembers it, and writes back. Sending to your own verified address is free on the Workers Free plan via Cloudflare Email Service. Includes a SillyTavern extension so the character in your chat can decide to mail you a letter through function calling. GPL-3.0.
+# 情书信箱 · Love Letter Mailbox
 
-一个跑在 Cloudflare Workers 上的“会写信的角色”。导入酒馆（SillyTavern）角色卡，TA 会按你设定的节奏（或者自己决定什么时候）给你的邮箱寄信。你直接回复邮件，TA 能收到、记住，并在之后回你。
+**让 AI 陪伴角色在想你的时候，给你的邮箱寄一封真正的信。**
 
-- **三种节奏**：`auto` 由角色每写完一封信就自己决定下一封隔多久写（附带理由）；`daily` 每天固定时间；`random` 每天在时间窗里挑一个随机时刻。
-- **能收回信**：回复 TA 的邮件后，回信会被存起来，TA 会在 30～180 分钟后（可调）回你，并在信里回应你说的每件事。
-- **有记忆**：最近几封信、你的回信、TA 主动记下的事、TA 给自己留的“下次想写什么”，都会带进下一次写信。
-- **角色卡**：支持 V1 / V2 / V3 的 JSON 卡和 PNG 卡，世界书里启用的条目也会读进来。
-- **管理页**：在 Worker 的网址上打开，可以预览、立即寄出、换角色卡、改设置、看历史。
-- **对外接口**：酒馆插件或其他 AI 可以调 `POST /api/letter` 让 TA 立刻写一封，或者直接寄一封写好的信。
+导入酒馆（SillyTavern）角色卡，TA 会定时、随机，或者自己决定什么时候给你写信。<br>
+你直接回复邮件，TA 能读到、记住，并在之后回你。基于 Cloudflare Workers，寄给自己完全免费。
+
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-9b3d2e.svg)](LICENSE)
+[![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-f38020?logo=cloudflare&logoColor=white)](https://developers.cloudflare.com/workers/)
+[![Cloudflare Email Service](https://img.shields.io/badge/Email_Service-free_to_yourself-f38020?logo=cloudflare&logoColor=white)](https://developers.cloudflare.com/email-service/)
+[![SillyTavern](https://img.shields.io/badge/SillyTavern-extension-6b5b95)](#酒馆插件让聊天里的-ta-自己决定寄信)
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178c6?logo=typescript&logoColor=white)](src/)
+
+[快速开始](#快速开始) · [效果预览](#效果预览) · [酒馆插件](#酒馆插件让聊天里的-ta-自己决定寄信) · [常见问题](#常见问题) · [English](#english)
+
+</div>
+
+## 它能做什么
+
+| | |
+|---|---|
+| **三种写信节奏** | `auto`：角色每写完一封，自己决定下一封隔多久写，还会写下理由<br>`daily`：每天固定时间　`random`：每天时间窗里随机一刻 |
+| **能收回信** | 直接回复邮件，TA 会在 30～180 分钟后（可调）回你，并回应你说的每件事 |
+| **有记忆和连续性** | 最近的信、你的回信、TA 记下的事、TA 留给自己的“下次想写什么”，都会带进下一封 |
+| **酒馆角色卡** | V1 / V2 / V3 的 JSON 卡和 PNG 卡，世界书里启用的条目也会读进来 |
+| **酒馆插件** | 聊天里的角色可以通过函数调用自己决定寄信；聊过的事会接进定时信 |
+| **管理页** | 预览、立即寄出、换角色卡、改设置、看来往的信，全在 Worker 的网址上 |
+| **模型随意换** | 默认 Claude（官方 SDK），也支持任何 OpenAI 兼容接口：DeepSeek、Gemini、OpenRouter…… |
+| **安全** | 回信只认你的邮箱且必须通过 DMARC；管理接口全部需要口令 |
+
+## 效果预览
+
+<table>
+<tr>
+<td width="50%" valign="top"><b>邮箱里收到的信</b><br><br><img src=".github/assets/letter.png" alt="情书在邮箱里的样子：信纸风格的 HTML 邮件"></td>
+<td width="50%" valign="top"><b>管理页</b><br><br><img src=".github/assets/admin.png" alt="管理页：下一封信的时间、写信节奏、立即写一封"><br><br><img src=".github/assets/history.png" alt="管理页：寄出的信、你的回信、TA 记住的事"></td>
+</tr>
+</table>
+
+## 工作原理
+
+```mermaid
+flowchart LR
+    cron["Cron<br>每 5 分钟看一眼"] --> W
+    st["SillyTavern 酒馆插件<br>函数调用 · 聊天同步"] -- API --> W
+    W["Cloudflare Worker"] -- 写信 --> llm["Claude / OpenAI 兼容模型"]
+    W -- send_email --> inbox["你的邮箱"]
+    inbox -- 你回信 --> er["Email Routing"] --> W
+    W <--> kv[("KV<br>信件 · 回信 · 记忆")]
+```
+
+没到写信时间时，Worker 只读一下 KV 就结束，不调用模型、不写数据；到点了才写信、寄出、记下这封信，再决定下一封什么时候写。
 
 ## 免费在哪里
 
@@ -240,7 +282,34 @@ src/admin.html    管理页
 examples/character.example.json  示例角色
 sillytavern-extension/            酒馆插件（manifest.json / index.js / style.css）
 bin/cli.js                        npx 命令行（init / extension）
+.github/assets/                   README 配图和分享卡片（social-card.html 是卡片源文件）
 ```
+
+## English
+
+**Love Letter Mailbox** is an open-source Cloudflare Worker that turns any SillyTavern character card into an AI companion who writes you real love letters by email.
+
+- **Scheduling:** daily at a fixed time, at a random time each day, or fully autonomous: after every letter the character decides when to write the next one, and why.
+- **Two-way:** reply to the email. Email Routing hands your reply to the Worker (DMARC-checked), the character remembers it and writes back.
+- **Memory:** recent letters, your replies, things the character chose to remember, and its own plan for the next letter go into every prompt.
+- **Character cards:** SillyTavern V1 / V2 / V3 cards in JSON or PNG, including embedded lorebook entries.
+- **SillyTavern extension:** registers a function-calling tool so the character in your chat can decide to mail you a letter, injects recent letters into the chat prompt, and can sync recent chat so scheduled letters follow up on what you talked about.
+- **Models:** Claude via the official Anthropic SDK by default, or any OpenAI-compatible API (DeepSeek, Gemini, OpenRouter, local proxies).
+- **Free to run:** Cloudflare Email Service lets Workers send to your own verified addresses at no cost, even on the Workers Free plan. Only the LLM costs money (a few cents per letter).
+
+Quick start (needs a domain on Cloudflare and Node.js 20+):
+
+```bash
+npx github:Link2theWorld/love-letter-mailbox init my-letters
+```
+
+Install the SillyTavern extension:
+
+```bash
+npx github:Link2theWorld/love-letter-mailbox extension ~/SillyTavern
+```
+
+The full guide above is in Chinese; the code comments and UI are in Chinese as well. Issues and PRs in English are welcome.
 
 ## 许可证
 
