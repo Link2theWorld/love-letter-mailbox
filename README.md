@@ -1,6 +1,6 @@
 # 情书信箱 · love-letter-mailbox
 
-[![npm](https://img.shields.io/npm/v/love-letter-mailbox)](https://www.npmjs.com/package/love-letter-mailbox) [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 
 > **English:** A Cloudflare Worker that lets an AI companion (any SillyTavern character card) write you love letters by email — on a daily schedule, at random times, or whenever the character decides to. Reply to the email and the character reads it, remembers it, and writes back. Sending to your own verified address is free on the Workers Free plan via Cloudflare Email Service. Includes a SillyTavern extension so the character in your chat can decide to mail you a letter through function calling. GPL-3.0.
 
@@ -30,10 +30,12 @@
 需要：一个 DNS 托管在 Cloudflare 上的域名、Node.js 20+。
 
 ```bash
-npx love-letter-mailbox init my-letters
+npx github:Link2theWorld/love-letter-mailbox init my-letters
 ```
 
 它会问你发件地址、收件地址和称呼，建好项目并装好依赖，最后列出剩下的步骤（就是下面的第 2、4～7 步）。
+
+`npx` 会直接从这个 GitHub 仓库下载并运行命令行工具，不需要另外安装，也不用 npm 账号。
 
 也可以直接克隆这个仓库：
 
@@ -49,7 +51,7 @@ cd love-letter-mailbox && npm install
 
 ### 1. 装依赖
 
-用 `npx love-letter-mailbox init` 建的项目已经装好了，跳过这步。克隆仓库的话运行 `npm install`。
+用 `npx ... init` 建的项目已经装好了，跳过这步。克隆仓库的话运行 `npm install`。
 
 ### 2. 在 Cloudflare 控制台开邮件
 
@@ -140,7 +142,7 @@ npm run deploy
 一条命令装进酒馆（后面是你的 SillyTavern 目录）：
 
 ```bash
-npx love-letter-mailbox extension ~/SillyTavern
+npx github:Link2theWorld/love-letter-mailbox extension ~/SillyTavern
 ```
 
 默认装到 `data/default-user/extensions/love-letter`。多用户的话加 `--user 用户名`，想给所有用户用就加 `--all-users`。再运行一次就是更新。

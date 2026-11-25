@@ -13,6 +13,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const PKG = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8"));
 const TEMPLATE = ["src", "examples", "sillytavern-extension", "wrangler.jsonc", "tsconfig.json", ".dev.vars.example", "README.md", "LICENSE"];
 const EXT_NAME = "love-letter";
+const NPX = "npx github:Link2theWorld/love-letter-mailbox";
 
 const GITIGNORE = `node_modules/
 .wrangler/
@@ -25,9 +26,11 @@ worker-configuration.d.ts
 const HELP = `情书信箱 ${PKG.version}
 
 用法：
-  npx ${PKG.name} init [目录]              创建一个情书 Worker 项目
-  npx ${PKG.name} extension <酒馆目录>      把信箱插件装进 SillyTavern
-  npx ${PKG.name} help
+  ${NPX} init [目录]
+      创建一个情书 Worker 项目
+  ${NPX} extension <酒馆目录>
+      把信箱插件装进 SillyTavern
+  ${NPX} help
 
 init 选项：
   --sender <邮箱>       发件地址（开了 Email Routing 的域名下）
@@ -183,7 +186,7 @@ function looksLikeSillyTavern(dir) {
 
 function installExtension(args) {
   const stDir = args._[1];
-  if (!stDir) fail("请给出 SillyTavern 的目录，例如：npx love-letter-mailbox extension ~/SillyTavern");
+  if (!stDir) fail(`请给出 SillyTavern 的目录，例如：${NPX} extension ~/SillyTavern`);
   const st = resolve(process.cwd(), stDir.replace(/^~(?=$|\/)/, process.env.HOME ?? "~"));
   if (!looksLikeSillyTavern(st)) fail(`${st} 看起来不是 SillyTavern 的目录（没找到 public/scripts/extensions）`);
 
