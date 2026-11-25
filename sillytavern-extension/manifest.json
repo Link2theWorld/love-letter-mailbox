@@ -1,0 +1,10 @@
+{
+  "display_name": "信箱（Love Letter Mailbox）",
+  "loading_order": 100,
+  "js": "index.js",
+  "css": "style.css",
+  "author": "Link2theWorld",
+  "version": "1.0.0",
+  "homePage": "https://github.com/Link2theWorld/love-letter-mailbox",
+  "auto_update": false
+}

@@ -1,0 +1,12 @@
+.ll-settings .ll-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 6px 0; }
+.ll-settings .ll-row > label { flex: 1 1 100%; }
+.ll-settings .ll-field { display: flex; flex-direction: column; gap: 2px; margin: 6px 0; }
+.ll-settings .ll-field small,
+.ll-settings .ll-note { opacity: 0.7; font-size: 0.85em; line-height: 1.4; }
+.ll-settings .ll-status { margin: 6px 0 2px; font-size: 0.9em; }
+.ll-settings .ll-status.ok { color: var(--active, #4caf50); }
+.ll-settings .ll-status.warn { color: var(--warning, #e8a23a); }
+.ll-settings .ll-buttons { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.ll-settings .ll-buttons .menu_button { width: auto; padding: 4px 10px; margin: 0; }
+.ll-settings hr { margin: 10px 0; opacity: 0.3; }
+.ll-settings .checkbox_label { display: flex; align-items: center; gap: 6px; margin: 6px 0; }

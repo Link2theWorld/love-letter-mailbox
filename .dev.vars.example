@@ -1,0 +1,7 @@
+# 本地 `npm run dev` 用。复制成 .dev.vars 再改。线上请用 `npx wrangler secret put`。
+ADMIN_TOKEN=换成一串足够长的随机字符
+LLM_API_KEY=
+# 本地先用 mock 测流程，不花钱
+LLM_PROVIDER=mock
+SENDER_EMAIL=letters@example.com
+RECIPIENT_EMAIL=you@example.com

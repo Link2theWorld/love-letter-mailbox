@@ -1,0 +1,56 @@
+{
+  "name": "love-letter-mailbox",
+  "version": "1.0.0",
+  "description": "让 AI 陪伴角色（SillyTavern 酒馆角色卡）通过 Cloudflare Workers 免费给你寄情书：定时、随机或由角色自己决定，支持回信与记忆。",
+  "keywords": [
+    "sillytavern",
+    "cloudflare-workers",
+    "email",
+    "love-letter",
+    "companion",
+    "ai",
+    "claude",
+    "character-card"
+  ],
+  "license": "GPL-3.0-only",
+  "author": "Link2theWorld",
+  "homepage": "https://github.com/Link2theWorld/love-letter-mailbox#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Link2theWorld/love-letter-mailbox.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Link2theWorld/love-letter-mailbox/issues"
+  },
+  "type": "module",
+  "bin": {
+    "love-letter-mailbox": "bin/cli.js",
+    "love-letter": "bin/cli.js"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "examples/",
+    "sillytavern-extension/",
+    "wrangler.jsonc",
+    "tsconfig.json",
+    ".dev.vars.example",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "wrangler dev --test-scheduled",
+    "deploy": "wrangler deploy",
+    "types": "wrangler types",
+    "check": "wrangler types && tsc --noEmit"
+  },
+  "devDependencies": {
+    "@anthropic-ai/sdk": "^1.14.0",
+    "postal-mime": "^4.2.1",
+    "typescript": "^7.0.2",
+    "wrangler": "^4.168.0"
+  }
+}

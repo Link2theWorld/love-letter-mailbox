@@ -1,0 +1,46 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "love-letter",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-11-25",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+
+  // 每 5 分钟醒一次，只检查“是不是到点了”。没到点时不会调用大模型，也不会写 KV。
+  "triggers": { "crons": ["*/5 * * * *"] },
+
+  // 信件、回信、记忆、角色卡、设置都存在这里。不填 id，第一次 deploy 时 wrangler 会自动创建。
+  "kv_namespaces": [{ "binding": "STORE" }],
+
+  // Cloudflare Email Service 的发信绑定。
+  // Free 计划下只能发给 Email Routing 里“已验证的目标地址”（免费、不占额度）。
+  // 想再收紧一点，可以加 "allowed_destination_addresses": ["你的邮箱"]。
+  "send_email": [{ "name": "EMAIL" }],
+
+  // 下面这些都可以部署后在管理页里改（管理页的设置会覆盖这里的值）。
+  // 密钥不要写在这里：用 `npx wrangler secret put LLM_API_KEY` 和 `npx wrangler secret put ADMIN_TOKEN`。
+  "vars": {
+    // 发件地址：必须是你在 Cloudflare 上开了 Email Routing 的域名下的地址
+    "SENDER_EMAIL": "letters@example.com",
+    // 收件地址：必须先在 Email Routing → Destination addresses 里添加并点验证邮件
+    "RECIPIENT_EMAIL": "you@example.com",
+    // 角色怎么称呼你（替换角色卡里的 {{user}}）
+    "USER_NAME": "",
+    "TIMEZONE": "Asia/Shanghai",
+
+    // auto = 角色自己决定下一封什么时候写；daily = 每天固定时间；random = 每天时间窗内随机
+    "SCHEDULE_MODE": "auto",
+    "DAILY_TIME": "21:30",
+    "RANDOM_WINDOW": "09:00-23:00",
+    "AUTO_MIN_HOURS": "6",
+    "AUTO_MAX_HOURS": "72",
+    "QUIET_HOURS": "01:00-07:30",
+    // 收到你的回信后多久回你（分钟范围），填 off 表示只记住、留到下一封信再回应
+    "REPLY_DELAY_MINUTES": "30-180",
+
+    // anthropic（默认，用官方 SDK）或 openai（任何 OpenAI 兼容接口：DeepSeek / OpenRouter / Gemini 等）或 mock（本地测试）
+    "LLM_PROVIDER": "anthropic",
+    "LLM_MODEL": "claude-opus-5-5",
+    "LLM_BASE_URL": ""
+  }
+}

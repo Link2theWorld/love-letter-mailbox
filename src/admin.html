@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>信箱 · 管理</title>
+<style>
+  :root {
+    --paper: #f4efe6; --card: #fffdf8; --ink: #3b3329; --muted: #8c7f6c; --line: #e4dccd;
+    --wax: #9b3d2e; --wax-soft: #f3e3dc; --ok: #4f7a52; --warn: #b5642b;
+    --serif: "Songti SC", "STSong", "Noto Serif SC", "Source Han Serif SC", Georgia, serif;
+    --sans: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.6 var(--sans); }
+  main { max-width: 860px; margin: 0 auto; padding: 32px 18px 80px; }
+  header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 22px; flex-wrap: wrap; }
+  h1 { font: 600 26px/1.2 var(--serif); margin: 0; letter-spacing: .04em; }
+  h1 small { font: 400 14px var(--sans); color: var(--muted); margin-left: 10px; letter-spacing: 0; }
+  h2 { font: 600 17px/1.3 var(--serif); margin: 0 0 14px; letter-spacing: .03em; }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 20px 22px; margin-bottom: 16px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px 20px; }
+  .stat .k { font-size: 12px; color: var(--muted); }
+  .stat .v { font: 500 16px/1.4 var(--serif); word-break: break-word; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  button { font: 500 14px var(--sans); border: 1px solid var(--line); background: #fff; color: var(--ink); padding: 8px 14px; border-radius: 7px; cursor: pointer; }
+  button:hover { border-color: #cbbfa9; }
+  button.primary { background: var(--wax); border-color: var(--wax); color: #fff; }
+  button.primary:hover { background: #86321f; }
+  button:disabled { opacity: .55; cursor: progress; }
+  input, textarea, select { font: 14px var(--sans); color: var(--ink); width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 7px; background: #fff; }
+  textarea { min-height: 70px; resize: vertical; line-height: 1.6; }
+  label { display: block; }
+  label .t { font-size: 13px; color: var(--muted); display: block; margin-bottom: 4px; }
+  label .h { font-size: 12px; color: #b0a490; display: block; margin-top: 3px; }
+  .check { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; align-self: end; padding-bottom: 6px; }
+  .check input { width: auto; margin: 0; }
+  .check .h { flex-basis: 100%; margin-top: 0; padding-left: 22px; }
+  fieldset { border: none; padding: 0; margin: 0 0 18px; }
+  legend { font: 600 14px var(--serif); color: var(--wax); margin-bottom: 10px; padding: 0; }
+  .msg { font-size: 13px; margin-top: 10px; min-height: 1em; }
+  .msg.err { color: var(--wax); } .msg.ok { color: var(--ok); }
+  .err-box { background: var(--wax-soft); color: var(--wax); border-radius: 7px; padding: 8px 12px; font-size: 13px; margin-top: 12px; }
+  .letter { border-top: 1px dashed var(--line); padding: 12px 0; }
+  .letter:first-child { border-top: none; padding-top: 0; }
+  .letter summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; gap: 10px; }
+  .letter summary::-webkit-details-marker { display: none; }
+  .letter .subj { font: 500 15px var(--serif); }
+  .letter .meta { font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .paper { font: 15px/1.95 var(--serif); white-space: pre-wrap; background: #fffaf0; border: 1px solid var(--line); border-radius: 8px; padding: 18px 20px; margin-top: 10px; }
+  .tag { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; background: var(--wax-soft); color: var(--wax); margin-left: 6px; vertical-align: 1px; }
+  .tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+  .tabs button { padding: 5px 12px; font-size: 13px; }
+  .tabs button.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .note { font-size: 13px; color: var(--muted); }
+  #gate { max-width: 420px; margin: 12vh auto; }
+  .hidden { display: none !important; }
+  pre.prompt { white-space: pre-wrap; font: 12px/1.55 ui-monospace, Menlo, monospace; background: #f7f3ec; padding: 12px; border-radius: 7px; max-height: 360px; overflow: auto; }
+</style>
+</head>
+<body>
+<main>
+  <section id="gate" class="hidden">
+    <h2>打开信箱</h2>
+    <p class="note">输入部署时用 <code>wrangler secret put ADMIN_TOKEN</code> 设置的管理口令。只保存在这台设备的浏览器里。</p>
+    <div class="row"><input id="token" type="password" placeholder="ADMIN_TOKEN" autocomplete="current-password"><button class="primary" id="tokenBtn">进入</button></div>
+    <div class="msg err" id="gateMsg"></div>
+  </section>
+
+  <div id="app" class="hidden">
+    <header>
+      <h1>信箱<small id="charLine"></small></h1>
+      <button id="logout">退出</button>
+    </header>
+
+    <section>
+      <h2>现在</h2>
+      <div class="grid" id="status"></div>
+      <div id="errorBox"></div>
+    </section>
+
+    <section>
+      <h2>写一封</h2>
+      <label><span class="t">想让这封信写点什么（可选，只是提示，TA 会用自己的方式写）</span>
+        <textarea id="hint" placeholder="比如：今天我面试结束了 / 最近降温了 / 想听 TA 讲讲书店的事"></textarea></label>
+      <div class="row" style="margin-top:12px">
+        <button id="previewBtn">先预览，不寄出</button>
+        <button id="sendBtn" class="primary">写好就寄出</button>
+        <button id="rescheduleBtn">重新排期</button>
+        <button id="pauseBtn"></button>
+      </div>
+      <div class="msg" id="writeMsg"></div>
+      <div id="previewBox" class="hidden">
+        <div class="paper" id="previewPaper"></div>
+        <p class="note" id="previewMeta"></p>
+        <details><summary class="note">看看这次的提示词</summary><pre class="prompt" id="previewPrompt"></pre></details>
+      </div>
+    </section>
+
+    <section>
+      <h2>角色卡</h2>
+      <p class="note">支持酒馆（SillyTavern）导出的角色卡：V1 / V2 / V3 的 <code>.json</code>，或者把数据藏在图片里的 <code>.png</code>。世界书里启用的条目也会读进来。</p>
+      <div class="row">
+        <input type="file" id="cardFile" accept=".json,.png,application/json,image/png" style="max-width:320px">
+        <button id="cardBtn" class="primary">上传</button>
+        <button id="cardReset">换回示例角色</button>
+      </div>
+      <div class="msg" id="cardMsg"></div>
+    </section>
+
+    <section>
+      <h2>设置</h2>
+      <form id="settingsForm"></form>
+      <div class="row"><button class="primary" id="saveBtn">保存设置</button><span class="note">改了节奏相关的设置会自动重新排期。</span></div>
+      <div class="msg" id="settingsMsg"></div>
+    </section>
+
+    <section>
+      <div class="tabs" id="tabs">
+        <button data-tab="letters" class="on">寄出的信</button>
+        <button data-tab="replies">你的回信</button>
+        <button data-tab="memories">TA 记住的事</button>
+      </div>
+      <div id="list"></div>
+    </section>
+  </div>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let TOKEN = localStorage.getItem("letterToken") || "";
+let STATUS = null;
+let HISTORY = { letters: [], replies: [], memories: [] };
+let TAB = "letters";
+
+async function api(path, opts = {}) {
+  const headers = Object.assign({ authorization: "Bearer " + TOKEN }, opts.headers || {});
+  if (opts.json !== undefined) { headers["content-type"] = "application/json"; opts.body = JSON.stringify(opts.json); }
+  const res = await fetch(path, { method: opts.method || "GET", headers, body: opts.body });
+  const data = await res.json().catch(() => ({}));
+  if (res.status === 401) { showGate("口令不对"); throw new Error("unauthorized"); }
+  if (!res.ok) throw new Error(data.error || ("HTTP " + res.status));
+  return data;
+}
+
+function showGate(msg) {
+  $("app").classList.add("hidden"); $("gate").classList.remove("hidden");
+  $("gateMsg").textContent = msg || "";
+}
+
+function fmt(iso) {
+  if (!iso) return "—";
+  const tz = STATUS && STATUS.settings.timezone;
+  try {
+    return new Intl.DateTimeFormat("zh-CN", { timeZone: tz, month: "long", day: "numeric", weekday: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(new Date(iso));
+  } catch { return new Date(iso).toLocaleString(); }
+}
+
+function relative(iso) {
+  if (!iso) return "";
+  const diff = Date.parse(iso) - Date.now();
+  const abs = Math.abs(diff), h = Math.floor(abs / 3600000), m = Math.round((abs % 3600000) / 60000);
+  const s = h ? (h >= 48 ? Math.round(h / 24) + " 天" : h + " 小时" + (m ? " " + m + " 分" : "")) : m + " 分钟";
+  return diff >= 0 ? s + "后" : s + "前";
+}
+
+function stat(k, v, sub) {
+  const d = document.createElement("div"); d.className = "stat";
+  const a = document.createElement("div"); a.className = "k"; a.textContent = k;
+  const b = document.createElement("div"); b.className = "v"; b.textContent = v;
+  d.append(a, b);
+  if (sub) { const c = document.createElement("div"); c.className = "k"; c.textContent = sub; d.append(c); }
+  return d;
+}
+
+const MODE = { auto: "TA 自己决定", daily: "每天固定时间", random: "每天随机时刻" };
+const SOURCE = { default: "示例角色", json: "JSON 角色卡", png: "PNG 角色卡" };
+
+function renderStatus() {
+  const s = STATUS, st = s.state, cfg = s.settings;
+  $("charLine").textContent = "· " + s.character.name + "（" + SOURCE[s.character.source] + "）";
+  const box = $("status"); box.replaceChildren();
+  box.append(
+    stat("下一封", cfg.paused ? "已暂停" : fmt(st.nextAt), cfg.paused ? "" : [relative(st.nextAt), st.nextReason].filter(Boolean).join(" · ")),
+    stat("节奏", MODE[cfg.scheduleMode] || cfg.scheduleMode, cfg.scheduleMode === "daily" ? cfg.dailyTime : cfg.scheduleMode === "random" ? cfg.randomWindow : cfg.autoMinHours + "–" + cfg.autoMaxHours + " 小时"),
+    stat("上一封", fmt(st.lastSentAt), relative(st.lastSentAt)),
+    stat("一共寄了", (st.letterCount || 0) + " 封", s.counts.unanswered ? "有 " + s.counts.unanswered + " 封回信等 TA 回应" : "收到 " + s.counts.replies + " 封回信"),
+    stat("模型", cfg.llmProvider + " / " + cfg.llmModel, s.hasLlmKey || cfg.llmProvider === "mock" ? "" : "⚠ 还没设置 LLM_API_KEY"),
+    stat("收件", cfg.recipientEmail || "⚠ 未设置", "发件：" + (cfg.senderEmail || "⚠ 未设置"))
+  );
+  const eb = $("errorBox"); eb.replaceChildren();
+  if (st.lastError) {
+    const d = document.createElement("div"); d.className = "err-box";
+    d.textContent = "上次出错（" + fmt(st.lastErrorAt) + "，已连续 " + st.failures + " 次）：" + st.lastError + (st.pendingSubject ? "。信已经写好《" + st.pendingSubject + "》，下次会直接重寄。" : "");
+    eb.append(d);
+  }
+  $("pauseBtn").textContent = cfg.paused ? "恢复自动写信" : "暂停自动写信";
+}
+
+function renderSettings() {
+  const form = $("settingsForm"); form.replaceChildren();
+  const groups = {};
+  for (const f of STATUS.fields) (groups[f.group] = groups[f.group] || []).push(f);
+  for (const [name, fields] of Object.entries(groups)) {
+    const fs = document.createElement("fieldset");
+    const lg = document.createElement("legend"); lg.textContent = name; fs.append(lg);
+    const grid = document.createElement("div"); grid.className = "grid"; fs.append(grid);
+    for (const f of fields) {
+      const val = STATUS.settings[f.key];
+      const label = document.createElement("label");
+      if (f.type === "text") label.style.gridColumn = "1 / -1";
+      let input;
+      if (f.type === "bool") {
+        label.className = "check";
+        input = document.createElement("input"); input.type = "checkbox"; input.checked = !!val;
+        const t = document.createElement("span"); t.textContent = f.label;
+        label.append(input, t);
+      } else {
+        const t = document.createElement("span"); t.className = "t"; t.textContent = f.label; label.append(t);
+        if (f.type === "select") {
+          input = document.createElement("select");
+          for (const o of f.options) { const op = document.createElement("option"); op.value = o; op.textContent = o; input.append(op); }
+          input.value = val;
+        } else if (f.type === "text") {
+          input = document.createElement("textarea"); input.value = val;
+        } else {
+          input = document.createElement("input"); input.type = f.type === "number" ? "number" : "text";
+          if (f.type === "number") input.step = "any";
+          input.value = val;
+        }
+        label.append(input);
+      }
+      input.dataset.key = f.key; input.dataset.type = f.type;
+      if (f.help) { const h = document.createElement("span"); h.className = "h"; h.textContent = f.help; label.append(h); }
+      grid.append(label);
+    }
+    form.append(fs);
+  }
+}
+
+function renderList() {
+  for (const b of $("tabs").querySelectorAll("button")) b.classList.toggle("on", b.dataset.tab === TAB);
+  const list = $("list"); list.replaceChildren();
+  const items = HISTORY[TAB] || [];
+  if (!items.length) {
+    const p = document.createElement("p"); p.className = "note";
+    p.textContent = TAB === "letters" ? "还没有寄出过信。" : TAB === "replies" ? "还没有收到回信。直接回复 TA 的邮件就行。" : "TA 还没有特别记住什么。";
+    list.append(p); return;
+  }
+  for (const it of items) {
+    if (TAB === "memories") {
+      const d = document.createElement("div"); d.className = "letter";
+      const t = document.createElement("div"); t.textContent = it.text;
+      const m = document.createElement("div"); m.className = "meta"; m.textContent = fmt(it.at);
+      d.append(t, m); list.append(d); continue;
+    }
+    const det = document.createElement("details"); det.className = "letter";
+    const sum = document.createElement("summary");
+    const left = document.createElement("span"); left.className = "subj";
+    left.textContent = it.subject || "（无标题）";
+    if (TAB === "letters" && it.trigger && it.trigger !== "schedule") {
+      const tg = document.createElement("span"); tg.className = "tag";
+      tg.textContent = { reply: "回你的信", manual: "手动", api: "API", first: "第一封" }[it.trigger] || it.trigger;
+      left.append(tg);
+    }
+    if (TAB === "replies" && !it.answered) { const tg = document.createElement("span"); tg.className = "tag"; tg.textContent = "TA 还没回"; left.append(tg); }
+    const right = document.createElement("span"); right.className = "meta"; right.textContent = fmt(it.at);
+    sum.append(left, right);
+    const paper = document.createElement("div"); paper.className = "paper"; paper.textContent = it.body || it.text;
+    det.append(sum, paper);
+    if (it.nextReason) { const n = document.createElement("p"); n.className = "note"; n.textContent = "写完后 TA 决定：" + it.nextReason; det.append(n); }
+    list.append(det);
+  }
+}
+
+async function load() {
+  STATUS = await api("/api/status");
+  HISTORY = await api("/api/letters");
+  $("gate").classList.add("hidden"); $("app").classList.remove("hidden");
+  renderStatus(); renderSettings(); renderList();
+}
+
+async function busy(btn, msgEl, fn) {
+  const all = document.querySelectorAll("button"); all.forEach((b) => (b.disabled = true));
+  msgEl.className = "msg"; msgEl.textContent = btn.dataset.busy || "处理中…";
+  try { const r = await fn(); msgEl.className = "msg ok"; msgEl.textContent = r || "好了"; }
+  catch (e) { if (e.message !== "unauthorized") { msgEl.className = "msg err"; msgEl.textContent = e.message; } }
+  finally { all.forEach((b) => (b.disabled = false)); }
+}
+
+$("tokenBtn").onclick = async () => {
+  TOKEN = $("token").value.trim(); localStorage.setItem("letterToken", TOKEN);
+  try { await load(); } catch (e) { if (e.message !== "unauthorized") $("gateMsg").textContent = e.message; }
+};
+$("token").addEventListener("keydown", (e) => { if (e.key === "Enter") $("tokenBtn").click(); });
+$("logout").onclick = () => { localStorage.removeItem("letterToken"); TOKEN = ""; showGate(""); };
+
+$("previewBtn").dataset.busy = "TA 正在写…（可能要一两分钟）";
+$("previewBtn").onclick = () => busy($("previewBtn"), $("writeMsg"), async () => {
+  const r = await api("/api/preview", { method: "POST", json: { hint: $("hint").value.trim() || undefined } });
+  const c = r.composed;
+  $("previewBox").classList.remove("hidden");
+  $("previewPaper").textContent = "《" + c.subject + "》\n\n" + c.body;
+  $("previewMeta").textContent = [c.nextHours !== undefined ? "下一封：" + c.nextHours + " 小时后，" + (c.nextReason || "") : "", c.memory ? "想记住：" + c.memory : "", c.plan ? "下次想写：" + c.plan : ""].filter(Boolean).join("　｜　");
+  $("previewPrompt").textContent = "【system】\n" + r.prompt.system + "\n\n【user】\n" + r.prompt.user;
+  return "预览好了，没有寄出。";
+});
+
+$("sendBtn").dataset.busy = "TA 正在写，写完马上寄…";
+$("sendBtn").onclick = () => {
+  if (!confirm("现在让 TA 写一封并寄出？")) return;
+  busy($("sendBtn"), $("writeMsg"), async () => {
+    const r = await api("/api/letter", { method: "POST", headers: { "x-from-admin": "1" }, json: { hint: $("hint").value.trim() || undefined } });
+    $("hint").value = ""; await load();
+    return "寄出了：《" + r.letter.subject + "》";
+  });
+};
+
+$("rescheduleBtn").onclick = () => busy($("rescheduleBtn"), $("writeMsg"), async () => {
+  await api("/api/reschedule", { method: "POST" }); await load(); return "重新排好了。";
+});
+
+$("pauseBtn").onclick = () => busy($("pauseBtn"), $("writeMsg"), async () => {
+  const next = !STATUS.settings.paused;
+  await api("/api/settings", { method: "PUT", json: { paused: next } });
+  if (!next) await api("/api/reschedule", { method: "POST" });
+  await load(); return next ? "已暂停。" : "恢复了。";
+});
+
+$("cardBtn").onclick = () => busy($("cardBtn"), $("cardMsg"), async () => {
+  const file = $("cardFile").files[0];
+  if (!file) throw new Error("先选一个文件");
+  const r = await api("/api/character", { method: "POST", headers: { "content-type": file.type || "application/octet-stream" }, body: file });
+  await load(); return "换好了：" + r.name + (r.loreEntries ? "（读入 " + r.loreEntries + " 条世界书）" : "");
+});
+$("cardReset").onclick = () => busy($("cardReset"), $("cardMsg"), async () => {
+  if (!confirm("换回示例角色？")) return "没有改动";
+  await api("/api/character", { method: "DELETE" }); await load(); return "换回示例角色了。";
+});
+
+$("saveBtn").onclick = (e) => { e.preventDefault(); busy($("saveBtn"), $("settingsMsg"), async () => {
+  const out = {};
+  for (const el of $("settingsForm").querySelectorAll("[data-key]")) {
+    const t = el.dataset.type, k = el.dataset.key;
+    const v = t === "bool" ? el.checked : t === "number" ? Number(el.value) : el.value;
+    if (v !== STATUS.settings[k]) out[k] = v; // 只提交改动过的，避免无谓的重新排期
+  }
+  if (!Object.keys(out).length) return "没有改动。";
+  await api("/api/settings", { method: "PUT", json: out }); await load(); return "保存了。";
+}); };
+
+$("tabs").onclick = (e) => { const t = e.target.closest("button"); if (t) { TAB = t.dataset.tab; renderList(); } };
+
+if (TOKEN) load().catch((e) => { if (e.message !== "unauthorized") showGate(e.message); });
+else showGate("");
+</script>
+</body>
+</html>
